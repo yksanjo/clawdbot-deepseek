@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "name": "clawdbot-deepseek",
+    "version": "1.0.0",
+    "description": "Clawdbot powered by DeepSeek for the community"
+  },
+  "auth": {
+    "profiles": {
+      "deepseek:default": {
+        "provider": "deepseek",
+        "mode": "api-key"
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com/v1",
+        "apiKey": "${DEEPSEEK_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek V3",
+            "description": "Fast, cost-effective general assistant",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0.14,
+              "output": 0.28,
+              "cacheRead": 0.014,
+              "cacheWrite": 0.14
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek R1",
+            "description": "Advanced reasoning with chain-of-thought",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0.55,
+              "output": 2.19,
+              "cacheRead": 0.14,
+              "cacheWrite": 0.55
+            },
+            "contextWindow": 64000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "deepseek/deepseek-chat",
+        "fallbacks": ["deepseek/deepseek-reasoner"]
+      },
+      "models": {
+        "deepseek/deepseek-chat": {
+          "alias": "ds"
+        },
+        "deepseek/deepseek-reasoner": {
+          "alias": "r1"
+        }
+      },
+      "workspace": "./workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "gateway": {
+    "mode": "local"
+  },
+  "plugins": {
+    "entries": {}
+  },
+  "channels": {}
+}

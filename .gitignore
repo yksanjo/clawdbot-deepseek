@@ -1,0 +1,43 @@
+# Environment
+.env
+.env.local
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Sensitive files
+*.key
+*.pem
+credentials/
+
+# Memory files (optional - uncomment to ignore)
+# workspace/memory/
+# workspace/MEMORY.md
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
