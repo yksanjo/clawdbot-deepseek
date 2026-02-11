@@ -8,110 +8,141 @@
 <h1 align="center">Clawdbot DeepSeek</h1>
 
 <p align="center">
-  <strong>Your Personal AI Assistant Powered by DeepSeek</strong><br>
-  <em>50x cheaper than GPT-4. Open source. Community-driven.</em>
+  <strong>Open-source alternative to $20/mo memory apps.</strong><br>
+  <em>Persistent AI memory. Self-hosted. 50x cheaper than GPT-4.</em><br>
+  <code>Your AI that actually remembers.</code>
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> |
-  <a href="#-features">Features</a> |
-  <a href="#-why-deepseek">Why DeepSeek</a> |
-  <a href="#-community">Community</a>
+  <a href="#-self-host-in-5-minutes">Quick Start</a> |
+  <a href="#-why-clawdbot-vs-alternatives">Why Clawdbot</a> |
+  <a href="#-the-problem--the-solution">Problem/Solution</a> |
+  <a href="#-features">Features</a>
 </p>
 
 ---
 
-## What is Clawdbot DeepSeek?
+## 💰 The Problem / The Solution
 
-Clawdbot DeepSeek is a **personal AI assistant framework** forked for the DeepSeek community. It's not just a chatbot - it's an agent that:
-
-- **Remembers** conversations across sessions with persistent memory
-- **Acts proactively** with heartbeats and scheduled tasks
-- **Integrates** with WhatsApp, Telegram, Discord, and more
-- **Costs pennies** compared to proprietary alternatives
-- **Respects privacy** with local-first design
-
+### Before Clawdbot
 ```
-"Hey. I just came online. Who am I? Who are you?"
+You: "Remember the app idea I mentioned last week?"
+ChatGPT: "I don't have memory of previous conversations."
+
+You: "The meeting with Sarah about the Q3 budget..."
+ChatGPT: "I don't have access to past conversations."
+
+You: *Copy-pastes context for the 47th time*
 ```
 
-Your agent introduces itself, learns about you, and becomes genuinely useful over time.
+### After Clawdbot
+```
+You: "What's the status of that app idea?"
+Clawdbot: "You mean the habit tracker with AI coaching? 
+          You wanted to start with the iOS prototype 
+          and had concerns about the subscription model. 
+          Want me to draft the MVP requirements?"
+
+You: "Remind me about the Sarah meeting."
+Clawdbot: "Budget review scheduled for tomorrow 2pm. 
+          You were worried about the 15% overrun in 
+          engineering costs. Want me to pull the numbers?"
+```
+
+**Persistent memory changes everything.**
 
 ---
 
-## Why DeepSeek?
+## ⚡ Clawdbot vs Competitors
+
+| Feature | Clawdbot DeepSeek | Mem.ai | Notion AI | ChatGPT Plus |
+|---------|-------------------|--------|-----------|--------------|
+| **Monthly Cost** | ~$1-5 | $20 | $20 | $20 |
+| **Persistent Memory** | ✅ Unlimited | ✅ Yes | ⚠️ Limited | ⚠️ Limited |
+| **Self-Hosted** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Data Privacy** | ✅ Local | ❌ Cloud | ❌ Cloud | ❌ Cloud |
+| **Open Source** | ✅ MIT | ❌ No | ❌ No | ❌ No |
+| **Custom Personality** | ✅ Full control | ⚠️ Limited | ❌ No | ❌ No |
+| **Proactive Tasks** | ✅ Heartbeats | ❌ No | ❌ No | ❌ No |
+| **WhatsApp/Telegram** | ✅ Built-in | ⚠️ Limited | ❌ No | ❌ No |
+
+---
+
+## 🎯 Why Clawdbot vs Alternatives
+
+### vs Mem.ai
+- **Mem.ai**: $20/mo, your data in their cloud, limited integrations
+- **Clawdbot**: Self-hosted, data stays on your machine, unlimited custom integrations
+
+### vs Notion AI
+- **Notion AI**: $20/mo, tied to documents, no persistent conversation memory
+- **Clawdbot**: True conversational memory, not document-based, learns over time
+
+### vs ChatGPT Plus
+- **ChatGPT Plus**: $20/mo, memory limited to specific facts, no proactive capabilities
+- **Clawdbot**: Full conversation history, proactive heartbeats, 50x cheaper API costs
+
+### vs Building Your Own
+- **From scratch**: Weeks of development, API integration headaches, memory management complexity
+- **Clawdbot**: Clone and run in 5 minutes, battle-tested memory system, active community
+
+---
+
+## 🚀 Self-Host in 5 Minutes
+
+### Step 1: Clone & Setup (1 min)
+```bash
+git clone https://github.com/yksanjo/clawdbot-deepseek.git
+cd clawdbot-deepseek
+./setup.sh
+```
+
+### Step 2: Add API Key (1 min)
+Get your key at [platform.deepseek.com](https://platform.deepseek.com) (free $5 credit)
+
+```bash
+# .env file is created automatically
+# Just edit and add:
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxx
+```
+
+### Step 3: Start Chatting (30 sec)
+```bash
+python scripts/deepseek_client.py --agent
+```
+
+**Done!** Your AI assistant with persistent memory is now running.
+
+---
+
+## 💸 Cost Breakdown
+
+### DeepSeek vs Competitors
 
 | Metric | DeepSeek V3 | GPT-4 | Claude 3.5 |
 |--------|-------------|-------|------------|
 | **Input Cost** | $0.14/1M tokens | $10/1M tokens | $3/1M tokens |
 | **Output Cost** | $0.28/1M tokens | $30/1M tokens | $15/1M tokens |
 | **Context Window** | 128K | 128K | 200K |
-| **Open Weights** | Yes | No | No |
-| **Coding Ability** | Excellent | Excellent | Excellent |
+| **Open Weights** | ✅ Yes | ❌ No | ❌ No |
 
 **Bottom line**: DeepSeek V3 delivers comparable quality at **~50x lower cost**.
 
-### Models Supported
+### Your Actual Monthly Cost
 
-| Model | Use Case | Best For |
-|-------|----------|----------|
-| `deepseek-chat` | General assistant | Daily tasks, coding, writing |
-| `deepseek-reasoner` | Complex reasoning | Math, logic, multi-step problems |
+| Usage Level | Daily Tokens | Monthly Cost |
+|-------------|--------------|--------------|
+| **Light** (casual use) | 100K | ~$1.20 |
+| **Moderate** (daily work) | 500K | ~$6.30 |
+| **Heavy** (power user) | 2M | ~$25 |
 
----
-
-## Quick Start
-
-### 1. Clone & Setup
-
-```bash
-git clone https://github.com/yksanjo/clawdbot-deepseek.git
-cd clawdbot-deepseek
-
-# Copy environment template
-cp .env.example .env
-```
-
-### 2. Add Your API Key
-
-Get your key at [platform.deepseek.com](https://platform.deepseek.com)
-
-```bash
-# Edit .env and add your key
-DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxx
-```
-
-### 3. Install & Test
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Test connection
-python scripts/test_connection.py
-
-# Start chatting!
-python scripts/deepseek_client.py --agent
-```
-
-### 4. Personalize Your Agent
-
-```bash
-# Run the setup wizard
-./setup.sh
-```
-
-Or manually edit:
-- `workspace/SOUL.md` - Agent's personality and values
-- `workspace/USER.md` - Your preferences and info
-- `workspace/IDENTITY.md` - Give your agent a name!
+Compare to: Mem.ai ($20), Notion AI ($20), ChatGPT Plus ($20) — all with **less memory capability**.
 
 ---
 
-## Features
+## ✨ Features
 
-### Persistent Memory
-
+### 🧠 Persistent Memory
 Your agent remembers across sessions:
 
 ```
@@ -123,8 +154,7 @@ workspace/
 └── MEMORY.md            # Long-term curated memories
 ```
 
-### Soul System
-
+### 🎭 Soul System
 Define your agent's personality in `SOUL.md`:
 
 ```markdown
@@ -137,8 +167,7 @@ Skip the "Great question!" - just help.
 An assistant with no personality is just a search engine.
 ```
 
-### Heartbeat System
-
+### 💓 Heartbeat System
 Proactive task execution in `HEARTBEAT.md`:
 
 ```markdown
@@ -147,19 +176,19 @@ Proactive task execution in `HEARTBEAT.md`:
 - [ ] Monitor project builds
 ```
 
-### Multi-Platform Integration
+### 🔌 Multi-Platform Integration
 
 | Platform | Status | Setup |
 |----------|--------|-------|
-| WhatsApp | Ready | QR code pairing |
-| Telegram | Ready | BotFather token |
-| Discord | Ready | Bot token |
-| Slack | Ready | App installation |
-| CLI | Ready | Built-in |
+| WhatsApp | ✅ Ready | QR code pairing |
+| Telegram | ✅ Ready | BotFather token |
+| Discord | ✅ Ready | Bot token |
+| Slack | ✅ Ready | App installation |
+| CLI | ✅ Ready | Built-in |
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 clawdbot-deepseek/
@@ -185,51 +214,24 @@ clawdbot-deepseek/
 
 ---
 
-## Configuration
+## 💻 Usage
 
-### Basic Setup
+### CLI Quick Chat
+```bash
+# Quick question
+python scripts/deepseek_client.py "What is quantum computing?"
 
-```json
-{
-  "models": {
-    "providers": {
-      "deepseek": {
-        "baseUrl": "https://api.deepseek.com/v1",
-        "apiKey": "${DEEPSEEK_API_KEY}",
-        "models": [
-          {
-            "id": "deepseek-chat",
-            "name": "DeepSeek V3",
-            "contextWindow": 128000
-          }
-        ]
-      }
-    }
-  }
-}
+# Agent mode with memory
+python scripts/deepseek_client.py --agent
+
+# Stream response
+python scripts/deepseek_client.py --stream "Tell me a story"
+
+# Use R1 for reasoning
+python scripts/deepseek_client.py --model deepseek-reasoner "Solve this logic puzzle"
 ```
 
-### Advanced: Multi-Model with Fallbacks
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "deepseek/deepseek-chat",
-        "fallbacks": ["deepseek/deepseek-reasoner"]
-      }
-    }
-  }
-}
-```
-
----
-
-## Python Client Usage
-
-### As a Library
-
+### Python Library
 ```python
 from scripts.deepseek_client import DeepSeekClient, ClawdbotAgent
 
@@ -237,49 +239,52 @@ from scripts.deepseek_client import DeepSeekClient, ClawdbotAgent
 client = DeepSeekClient()
 response = client.simple_chat("What is the capital of France?")
 
-# With agent personality
+# With persistent memory
 agent = ClawdbotAgent(workspace_path="./workspace")
 response = agent.chat("Help me write a Python function")
-
-# Streaming
-for chunk in client.chat(messages, stream=True):
-    print(chunk, end="")
 
 # Use R1 for reasoning
 answer = client.reason("Solve: If 3x + 5 = 20, what is x?")
 ```
 
-### CLI Usage
+---
 
-```bash
-# Quick chat
-python scripts/deepseek_client.py "What is quantum computing?"
+## 🔧 Personalization
 
-# Agent mode (uses workspace personality)
-python scripts/deepseek_client.py --agent
+### Give Your Agent a Name
+Edit `workspace/IDENTITY.md`:
+```markdown
+# Name
+Atlas
 
-# Stream response
-python scripts/deepseek_client.py --stream "Tell me a story"
+# Identity
+Your helpful AI companion with persistent memory.
+```
 
-# Use R1 reasoner
-python scripts/deepseek_client.py --model deepseek-reasoner "Prove P != NP"
+### Teach It About You
+Edit `workspace/USER.md`:
+```markdown
+# About the User
+- Software engineer focused on AI/ML
+- Prefers concise answers
+- Working on: open-source AI projects
+```
+
+### Define Its Personality
+Edit `workspace/SOUL.md`:
+```markdown
+## Tone
+Direct, helpful, occasionally witty.
+
+## Values
+- Truth over comfort
+- Action over analysis
+- Progress over perfection
 ```
 
 ---
 
-## Cost Calculator
-
-| Usage | Tokens/Day | Daily Cost | Monthly Cost |
-|-------|------------|------------|--------------|
-| Light | 100K | $0.04 | $1.20 |
-| Moderate | 500K | $0.21 | $6.30 |
-| Heavy | 2M | $0.84 | $25.20 |
-
-*Based on 50/50 input/output split with DeepSeek V3*
-
----
-
-## Roadmap
+## 🗺️ Roadmap
 
 - [x] Core agent framework
 - [x] DeepSeek V3 integration
@@ -296,7 +301,7 @@ python scripts/deepseek_client.py --model deepseek-reasoner "Prove P != NP"
 
 ---
 
-## Community
+## 🤝 Community
 
 This is a **community project** for DeepSeek users. We welcome:
 
@@ -306,7 +311,6 @@ This is a **community project** for DeepSeek users. We welcome:
 - Sharing your agent configurations
 
 ### Contributing
-
 ```bash
 # Fork the repo
 git clone https://github.com/YOUR_USERNAME/clawdbot-deepseek.git
@@ -323,24 +327,15 @@ git push origin feature/amazing-feature
 
 ---
 
-## Credits
-
-- Original [Clawdbot](https://github.com/clawdbot) framework
-- [DeepSeek](https://deepseek.com) for the incredible models
-- The open-source AI community
-- All contributors!
-
----
-
-## License
+## 📄 License
 
 MIT License - See [LICENSE](LICENSE) file
 
 ---
 
 <p align="center">
-  <strong>Built for the DeepSeek Community</strong><br>
-  <em>Star this repo if you find it useful!</em>
+  <strong>Stop paying $20/mo for AI memory that forgets.</strong><br>
+  <em>Self-host Clawdbot and own your AI assistant.</em>
 </p>
 
 <p align="center">
