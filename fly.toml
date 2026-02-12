@@ -1,0 +1,45 @@
+# Fly.io deployment configuration
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "clawdbot-deepseek"
+primary_region = "iad"  # Change to your preferred region
+
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[env]
+  PYTHON_VERSION = "3.11"
+  PORT = "8080"
+  WORKSPACE_PATH = "/app/workspace"
+
+# Persistent volume for workspace files
+[[mounts]]
+  source = "workspace_data"
+  destination = "/app/workspace"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+# Health checks
+[[http_service.checks]]
+  grace_period = "5s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
+  protocol = "http"
+  tls_skip_verify = false
+
+[metrics]
+  port = 8080
+  path = "/metrics"

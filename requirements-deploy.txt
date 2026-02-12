@@ -1,0 +1,18 @@
+# Clawdbot DeepSeek - Deployment Requirements
+# This is the requirements file for cloud deployment
+
+# HTTP requests for DeepSeek API
+requests>=2.31.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Web framework for API
+flask>=3.0.0
+gunicorn>=21.2.0
+
+# Production server
+uvicorn>=0.27.0
+
+# Optional: For async support
+# aiohttp>=3.9.0

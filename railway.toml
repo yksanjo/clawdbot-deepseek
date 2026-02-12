@@ -1,0 +1,20 @@
+# Railway.app deployment configuration
+# Docs: https://docs.railway.app/deploy/config-as-code
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+# Health check endpoint
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Sleep after inactivity (reduces costs)
+sleepApplication = false
+
+# Number of replicas
+numReplicas = 1

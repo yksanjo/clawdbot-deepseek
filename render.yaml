@@ -1,0 +1,35 @@
+# Render.com deployment configuration
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: clawdbot-deepseek
+    runtime: python
+    plan: standard
+    region: oregon
+    
+    buildCommand: pip install -r requirements-deploy.txt
+    startCommand: python app.py
+    
+    # Environment variables
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false  # Set via Render dashboard
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 10000
+      - key: WORKSPACE_PATH
+        value: /data/workspace
+    
+    # Persistent disk for memory files
+    disk:
+      name: workspace
+      mountPath: /data/workspace
+      sizeGB: 1
+    
+    # Auto-deploy on git push
+    autoDeploy: true
+    
+    # Health check
+    healthCheckPath: /health
