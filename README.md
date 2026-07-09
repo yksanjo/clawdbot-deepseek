@@ -182,7 +182,6 @@ Proactive task execution in `HEARTBEAT.md`:
 |----------|--------|-------|
 | WhatsApp | ✅ Ready | QR code pairing |
 | Telegram | ✅ Ready | BotFather token |
-| Discord | ✅ Ready | Bot token |
 | Slack | ✅ Ready | App installation |
 | CLI | ✅ Ready | Built-in |
 
@@ -218,10 +217,10 @@ clawdbot-deepseek/
 
 For community deployment, see [COMMUNITY_RELEASE.md](COMMUNITY_RELEASE.md).
 
-### 24/7 Discord Community Bot
+### 24/7 Telegram Community Bot
 
-Clawdbot can run as a Discord worker that replies in DMs, replies when mentioned,
-and captures app requests with `!app`.
+Clawdbot can run as a Telegram worker that replies to messages and captures app
+requests with `/app`.
 
 ```bash
 python3.11 -m venv .venv
@@ -230,18 +229,19 @@ python3.11 -m venv .venv
 # .env
 DEEPSEEK_API_KEY=sk-your-key
 DEEPSEEK_MODEL=deepseek-v4-flash
-DISCORD_BOT_TOKEN=your_discord_bot_token
-DISCORD_REQUIRE_MENTION=true
+COMMUNITY_TRANSPORT=telegram
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_REQUIRE_COMMAND=false
 
-.venv/bin/python plugins/discord_bot.py
+.venv/bin/python plugins/telegram_bot.py
 ```
 
 Community app requests are saved under `workspace/app_requests/` as JSON and
 Markdown specs. Use:
 
 ```text
-!app build a landing page for our token with wallet connect and a waitlist
-!requests
+/app build a landing page for our token with wallet connect and a waitlist
+/requests
 ```
 
 For coding-heavy spec generation, add a Kimi key and route app requests to Kimi:
@@ -330,9 +330,8 @@ Direct, helpful, occasionally witty.
 - [x] DeepSeek R1 (reasoner) support
 - [x] Persistent memory system
 - [x] Python client with streaming
+- [x] Telegram plugin
 - [ ] WhatsApp plugin
-- [ ] Telegram plugin
-- [ ] Discord plugin
 - [ ] Voice support (ElevenLabs)
 - [ ] Web dashboard
 - [ ] Docker deployment

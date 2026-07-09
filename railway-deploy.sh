@@ -41,8 +41,9 @@ if [ -z "$PROVIDER_KEY" ]; then
 fi
 
 echo -e "${GREEN}Provider key loaded${NC}"
-if [ -z "$DISCORD_BOT_TOKEN" ]; then
-    echo -e "${YELLOW}DISCORD_BOT_TOKEN not found; add it before starting the worker.${NC}"
+COMMUNITY_TRANSPORT="${COMMUNITY_TRANSPORT:-telegram}"
+if [ "$COMMUNITY_TRANSPORT" = "telegram" ] && [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+    echo -e "${YELLOW}TELEGRAM_BOT_TOKEN not found; add it before starting the worker.${NC}"
 fi
 
 # Step 1: Login
@@ -66,6 +67,7 @@ fi
 echo ""
 echo -e "${BLUE}Step 3: Setting Environment Variables${NC}"
 railway variables set AI_PROVIDER="$AI_PROVIDER"
+railway variables set COMMUNITY_TRANSPORT="$COMMUNITY_TRANSPORT"
 if [ "$AI_PROVIDER" = "kimi" ]; then
     [ -n "$KIMI_API_KEY" ] && railway variables set KIMI_API_KEY="$KIMI_API_KEY"
     [ -n "$MOONSHOT_API_KEY" ] && railway variables set MOONSHOT_API_KEY="$MOONSHOT_API_KEY"
@@ -75,8 +77,8 @@ else
     railway variables set DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-flash}"
     railway variables set DEEPSEEK_REASONING_MODEL="${DEEPSEEK_REASONING_MODEL:-deepseek-v4-pro}"
 fi
-[ -n "$DISCORD_BOT_TOKEN" ] && railway variables set DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN"
-railway variables set DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}"
+[ -n "$TELEGRAM_BOT_TOKEN" ] && railway variables set TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN"
+railway variables set TELEGRAM_REQUIRE_COMMAND="${TELEGRAM_REQUIRE_COMMAND:-false}"
 railway variables set WORKSPACE_PATH="/data/workspace"
 railway variables set PORT="5000"
 echo -e "${GREEN}✓ Variables set${NC}"
@@ -108,5 +110,5 @@ railway domain
 echo ""
 echo "🎉 Access your Clawdbot at the URL above!"
 echo ""
-echo "Discord worker start command:"
-echo "  python plugins/discord_bot.py"
+echo "Telegram worker start command:"
+echo "  python plugins/telegram_bot.py"

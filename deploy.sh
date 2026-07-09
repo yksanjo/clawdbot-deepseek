@@ -39,12 +39,16 @@ if [ -z "$PROVIDER_KEY" ]; then
     exit 1
 fi
 
+COMMUNITY_TRANSPORT="${COMMUNITY_TRANSPORT:-telegram}"
+
 echo -e "${GREEN}Provider key is set${NC}"
 
-if [ -n "$DISCORD_BOT_TOKEN" ]; then
-    echo -e "${GREEN}DISCORD_BOT_TOKEN is set${NC}"
+if [ "$COMMUNITY_TRANSPORT" = "telegram" ] && [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+    echo -e "${GREEN}TELEGRAM_BOT_TOKEN is set${NC}"
+elif [ "$COMMUNITY_TRANSPORT" = "telegram" ]; then
+    echo -e "${YELLOW}TELEGRAM_BOT_TOKEN is not set; web API can deploy, Telegram worker cannot run yet.${NC}"
 else
-    echo -e "${YELLOW}DISCORD_BOT_TOKEN is not set; web API can deploy, Discord worker cannot run yet.${NC}"
+    echo -e "${YELLOW}COMMUNITY_TRANSPORT is '$COMMUNITY_TRANSPORT'; deployment scripts default to telegram.${NC}"
 fi
 
 # Function to deploy to Railway
@@ -64,6 +68,7 @@ deploy_railway() {
     
     echo "Setting environment variables..."
     railway variables set AI_PROVIDER="$AI_PROVIDER"
+    railway variables set COMMUNITY_TRANSPORT="$COMMUNITY_TRANSPORT"
     if [ "$AI_PROVIDER" = "kimi" ]; then
         [ -n "$KIMI_API_KEY" ] && railway variables set KIMI_API_KEY="$KIMI_API_KEY"
         [ -n "$MOONSHOT_API_KEY" ] && railway variables set MOONSHOT_API_KEY="$MOONSHOT_API_KEY"
@@ -73,8 +78,8 @@ deploy_railway() {
         railway variables set DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-flash}"
         railway variables set DEEPSEEK_REASONING_MODEL="${DEEPSEEK_REASONING_MODEL:-deepseek-v4-pro}"
     fi
-    [ -n "$DISCORD_BOT_TOKEN" ] && railway variables set DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN"
-    railway variables set DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}"
+    [ -n "$TELEGRAM_BOT_TOKEN" ] && railway variables set TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN"
+    railway variables set TELEGRAM_REQUIRE_COMMAND="${TELEGRAM_REQUIRE_COMMAND:-false}"
     railway variables set WORKSPACE_PATH="/data/workspace"
     
     echo "Deploying..."
@@ -95,7 +100,7 @@ deploy_render() {
     echo "2. Go to https://dashboard.render.com/blueprints"
     echo "3. Click 'New Blueprint Instance'"
     echo "4. Connect your GitHub repo"
-    echo "5. Set provider key and DISCORD_BOT_TOKEN in environment variables"
+    echo "5. Set provider key and TELEGRAM_BOT_TOKEN in environment variables"
     echo ""
     echo -e "${YELLOW}Or use Render CLI (if installed):${NC}"
     
@@ -122,6 +127,7 @@ deploy_fly() {
     
     echo "Setting secrets..."
     fly secrets set AI_PROVIDER="$AI_PROVIDER"
+    fly secrets set COMMUNITY_TRANSPORT="$COMMUNITY_TRANSPORT"
     if [ "$AI_PROVIDER" = "kimi" ]; then
         [ -n "$KIMI_API_KEY" ] && fly secrets set KIMI_API_KEY="$KIMI_API_KEY"
         [ -n "$MOONSHOT_API_KEY" ] && fly secrets set MOONSHOT_API_KEY="$MOONSHOT_API_KEY"
@@ -131,8 +137,8 @@ deploy_fly() {
         fly secrets set DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-flash}"
         fly secrets set DEEPSEEK_REASONING_MODEL="${DEEPSEEK_REASONING_MODEL:-deepseek-v4-pro}"
     fi
-    [ -n "$DISCORD_BOT_TOKEN" ] && fly secrets set DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN"
-    fly secrets set DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}"
+    [ -n "$TELEGRAM_BOT_TOKEN" ] && fly secrets set TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN"
+    fly secrets set TELEGRAM_REQUIRE_COMMAND="${TELEGRAM_REQUIRE_COMMAND:-false}"
     fly secrets set WORKSPACE_PATH="/app/workspace"
     
     echo "Deploying..."
@@ -160,11 +166,12 @@ deploy_docker() {
         --name clawdbot \
         -p 8080:8080 \
         -e AI_PROVIDER="$AI_PROVIDER" \
+        -e COMMUNITY_TRANSPORT="$COMMUNITY_TRANSPORT" \
         -e DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY" \
         -e KIMI_API_KEY="$KIMI_API_KEY" \
         -e MOONSHOT_API_KEY="$MOONSHOT_API_KEY" \
-        -e DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
-        -e DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}" \
+        -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
+        -e TELEGRAM_REQUIRE_COMMAND="${TELEGRAM_REQUIRE_COMMAND:-false}" \
         -e PORT=8080 \
         -v "$(pwd)/workspace:/data/workspace" \
         --restart unless-stopped \
@@ -198,7 +205,7 @@ echo "Choose deployment target:"
 echo ""
 echo -e "${BLUE}Cloud Platforms:${NC}"
 echo "  1) Railway (easiest, $5/mo credit)"
-echo "  2) Render (web + Discord worker blueprint)"
+echo "  2) Render (web + Telegram worker blueprint)"
 echo "  3) Fly.io (performance, low cost)"
 echo ""
 echo -e "${BLUE}Self-Hosted:${NC}"
@@ -260,7 +267,7 @@ case $choice in
         echo ""
         echo "For all platforms, you need:"
         echo "  1. Fresh provider API key"
-        echo "  2. DISCORD_BOT_TOKEN for the community worker"
+        echo "  2. TELEGRAM_BOT_TOKEN for the community worker"
         echo "  3. Git repository pushed to GitHub"
         echo ""
         ;;

@@ -23,16 +23,23 @@ def require(name: str, aliases: tuple[str, ...] = ()) -> bool:
 
 def main() -> int:
     provider = os.getenv("AI_PROVIDER", "deepseek")
+    transport = os.getenv("COMMUNITY_TRANSPORT", "telegram")
     print(f"provider: {provider}")
+    print(f"transport: {transport}")
 
-    checks = [require("DISCORD_BOT_TOKEN")]
+    checks = []
+    if transport != "telegram":
+        print("unsupported transport: only telegram is enabled for this release")
+        checks.append(False)
+    else:
+        checks.append(require("TELEGRAM_BOT_TOKEN"))
+
     if provider == "kimi":
         checks.append(require("KIMI_API_KEY", ("MOONSHOT_API_KEY",)))
     else:
         checks.append(require("DEEPSEEK_API_KEY"))
 
     try:
-        import discord  # noqa: F401
         import flask  # noqa: F401
         import requests  # noqa: F401
 

@@ -17,6 +17,3 @@ rich>=13.0.0
 
 # Optional: Async support
 aiohttp>=3.9.0
-
-# Optional: Discord community bot
-discord.py>=2.4.0
