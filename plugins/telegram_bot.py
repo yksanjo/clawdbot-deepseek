@@ -56,6 +56,15 @@ SMART_KEYWORDS = tuple(
     if item.strip()
 )
 CONTEXT_MESSAGES = int(os.getenv("TELEGRAM_CONTEXT_MESSAGES", "12"))
+AI_MAX_TOKENS = int(os.getenv("TELEGRAM_AI_MAX_TOKENS", "900"))
+DROP_PENDING_UPDATES_ON_START = os.getenv(
+    "TELEGRAM_DROP_PENDING_UPDATES_ON_START",
+    "true",
+).lower() in {
+    "1",
+    "true",
+    "yes",
+}
 DEBUG_MESSAGES = os.getenv("TELEGRAM_DEBUG_MESSAGES", "false").lower() in {
     "1",
     "true",
@@ -94,6 +103,10 @@ class TelegramBot:
         self.bot_id = me.get("id")
         self.username = me.get("username")
         self._set_commands()
+        if DROP_PENDING_UPDATES_ON_START:
+            self._request("deleteWebhook", {"drop_pending_updates": True}, timeout=15)
+            if DEBUG_MESSAGES:
+                print("telegram dropped pending updates on startup", flush=True)
         print(f"Clawdbot Telegram bot online as @{self.username}", flush=True)
 
         offset: Optional[int] = None
@@ -393,10 +406,23 @@ Latest message from {requester}:
         requester: str = "telegram-user",
         message: Optional[dict[str, Any]] = None,
     ) -> None:
+        if DEBUG_MESSAGES:
+            preview = re.sub(r"\s+", " ", text).strip()[:160]
+            print(f"telegram ai start chat={chat_id} text={preview}", flush=True)
         try:
-            response = self.agent.chat(self._context_prompt(chat_id, requester, text))
+            response = self.agent.chat(
+                self._context_prompt(chat_id, requester, text),
+                max_tokens=AI_MAX_TOKENS,
+            )
+            if DEBUG_MESSAGES:
+                print(
+                    f"telegram ai done chat={chat_id} chars={len(response)}",
+                    flush=True,
+                )
         except Exception as exc:
             response = f"AI provider error: {exc}"
+            if DEBUG_MESSAGES:
+                print(f"telegram ai error chat={chat_id} error={exc}", flush=True)
         self._send(chat_id, response, reply_to_message_id=(message or {}).get("message_id"))
 
     def _send(
@@ -417,6 +443,12 @@ Latest message from {requester}:
             if reply_to_message_id:
                 payload["reply_to_message_id"] = reply_to_message_id
                 payload["allow_sending_without_reply"] = True
+            if DEBUG_MESSAGES:
+                print(
+                    "telegram send "
+                    f"chat={chat_id} reply_to={reply_to_message_id} chars={len(chunk)}",
+                    flush=True,
+                )
             self._request("sendMessage", payload)
 
     def _set_commands(self) -> None:

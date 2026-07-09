@@ -25,11 +25,14 @@ DEEPSEEK_API_KEY=sk-your-fresh-deepseek-key
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
 DEEPSEEK_MODEL=deepseek-v4-flash
 DEEPSEEK_REASONING_MODEL=deepseek-v4-pro
+AI_REQUEST_TIMEOUT_SECONDS=45
 
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_REQUIRE_COMMAND=false
 TELEGRAM_PARTICIPATION_MODE=smart
 TELEGRAM_TRIGGER_NAMES=-agent,agent,breakout,breakout agent,clawdbot
+TELEGRAM_AI_MAX_TOKENS=900
+TELEGRAM_DROP_PENDING_UPDATES_ON_START=true
 ```
 
 Optional safety limits:

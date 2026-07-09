@@ -95,6 +95,11 @@ class OpenAICompatibleClient:
             or config.default_base_url
         ).rstrip("/")
         self.default_model = model or os.getenv(config.model_env) or config.default_model
+        self.timeout = float(
+            os.getenv("AI_REQUEST_TIMEOUT_SECONDS")
+            or os.getenv("DEEPSEEK_TIMEOUT_SECONDS")
+            or "45"
+        )
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -127,6 +132,7 @@ class OpenAICompatibleClient:
             ChatResponse object or generator if streaming
         """
         model = model or self.default_model
+        request_timeout = kwargs.pop("request_timeout", self.timeout)
 
         if self.provider == "kimi" and model.startswith("kimi-k2.7-code"):
             # Kimi K2.7 Code only accepts fixed sampling parameters.
@@ -148,6 +154,7 @@ class OpenAICompatibleClient:
             f"{self.base_url}/chat/completions",
             json=payload,
             stream=stream,
+            timeout=request_timeout,
         )
         response.raise_for_status()
 
