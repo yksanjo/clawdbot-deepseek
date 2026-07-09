@@ -6,6 +6,7 @@ Test DeepSeek API connection and verify setup.
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -51,7 +52,10 @@ def test_models():
 
     client = DeepSeekClient()
 
-    models = ["deepseek-chat", "deepseek-reasoner"]
+    models = [
+        os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash"),
+        os.getenv("DEEPSEEK_REASONING_MODEL", "deepseek-v4-pro"),
+    ]
 
     for model in models:
         try:
@@ -81,15 +85,8 @@ def test_streaming():
 
 
 if __name__ == "__main__":
-    # Load .env if exists
     env_path = Path(__file__).parent.parent / ".env"
-    if env_path.exists():
-        with open(env_path) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
-                    os.environ[key] = value
+    load_dotenv(env_path)
 
     print("=" * 40)
     print("  DeepSeek Connection Test")

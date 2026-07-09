@@ -33,3 +33,39 @@ services:
     
     # Health check
     healthCheckPath: /health
+
+  - type: worker
+    name: clawdbot-discord-worker
+    runtime: python
+    plan: standard
+    region: oregon
+
+    buildCommand: pip install -r requirements-deploy.txt
+    startCommand: python plugins/discord_bot.py
+
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: AI_PROVIDER
+        value: deepseek
+      - key: DEEPSEEK_BASE_URL
+        value: https://api.deepseek.com/v1
+      - key: DEEPSEEK_MODEL
+        value: deepseek-v4-flash
+      - key: DEEPSEEK_REASONING_MODEL
+        value: deepseek-v4-pro
+      - key: DISCORD_REQUIRE_MENTION
+        value: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: WORKSPACE_PATH
+        value: /data/workspace
+
+    disk:
+      name: workspace-worker
+      mountPath: /data/workspace
+      sizeGB: 1
+
+    autoDeploy: true

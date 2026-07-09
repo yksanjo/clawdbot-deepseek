@@ -216,6 +216,45 @@ clawdbot-deepseek/
 
 ## 💻 Usage
 
+For community deployment, see [COMMUNITY_RELEASE.md](COMMUNITY_RELEASE.md).
+
+### 24/7 Discord Community Bot
+
+Clawdbot can run as a Discord worker that replies in DMs, replies when mentioned,
+and captures app requests with `!app`.
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+
+# .env
+DEEPSEEK_API_KEY=sk-your-key
+DEEPSEEK_MODEL=deepseek-v4-flash
+DISCORD_BOT_TOKEN=your_discord_bot_token
+DISCORD_REQUIRE_MENTION=true
+
+.venv/bin/python plugins/discord_bot.py
+```
+
+Community app requests are saved under `workspace/app_requests/` as JSON and
+Markdown specs. Use:
+
+```text
+!app build a landing page for our token with wallet connect and a waitlist
+!requests
+```
+
+For coding-heavy spec generation, add a Kimi key and route app requests to Kimi:
+
+```bash
+KIMI_API_KEY=sk-your-kimi-key
+APP_REQUEST_PROVIDER=kimi
+APP_REQUEST_MODEL=kimi-k2.7-code
+```
+
+Automatic build execution is disabled by default. Only enable
+`APP_REQUEST_AUTOBUILD=true` with an approval-gated command.
+
 ### CLI Quick Chat
 ```bash
 # Quick question

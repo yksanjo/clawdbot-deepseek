@@ -28,6 +28,7 @@ ENV PATH=/root/.local/bin:$PATH
 
 # Copy application code
 COPY scripts/ ./scripts/
+COPY plugins/ ./plugins/
 COPY app.py .
 COPY workspace/ ./workspace/
 

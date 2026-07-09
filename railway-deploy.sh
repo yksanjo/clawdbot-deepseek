@@ -26,12 +26,24 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-if [ -z "$DEEPSEEK_API_KEY" ]; then
-    echo "❌ DEEPSEEK_API_KEY not found in .env"
+AI_PROVIDER="${AI_PROVIDER:-deepseek}"
+if [ "$AI_PROVIDER" = "kimi" ]; then
+    PROVIDER_KEY="${KIMI_API_KEY:-$MOONSHOT_API_KEY}"
+    PROVIDER_KEY_NAME="KIMI_API_KEY or MOONSHOT_API_KEY"
+else
+    PROVIDER_KEY="$DEEPSEEK_API_KEY"
+    PROVIDER_KEY_NAME="DEEPSEEK_API_KEY"
+fi
+
+if [ -z "$PROVIDER_KEY" ]; then
+    echo "$PROVIDER_KEY_NAME not found in .env"
     exit 1
 fi
 
-echo -e "${GREEN}✓ API Key loaded${NC}"
+echo -e "${GREEN}Provider key loaded${NC}"
+if [ -z "$DISCORD_BOT_TOKEN" ]; then
+    echo -e "${YELLOW}DISCORD_BOT_TOKEN not found; add it before starting the worker.${NC}"
+fi
 
 # Step 1: Login
 echo ""
@@ -53,7 +65,18 @@ fi
 # Step 3: Set environment variables
 echo ""
 echo -e "${BLUE}Step 3: Setting Environment Variables${NC}"
-railway variables set DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+railway variables set AI_PROVIDER="$AI_PROVIDER"
+if [ "$AI_PROVIDER" = "kimi" ]; then
+    [ -n "$KIMI_API_KEY" ] && railway variables set KIMI_API_KEY="$KIMI_API_KEY"
+    [ -n "$MOONSHOT_API_KEY" ] && railway variables set MOONSHOT_API_KEY="$MOONSHOT_API_KEY"
+else
+    railway variables set DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+    railway variables set DEEPSEEK_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}"
+    railway variables set DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-flash}"
+    railway variables set DEEPSEEK_REASONING_MODEL="${DEEPSEEK_REASONING_MODEL:-deepseek-v4-pro}"
+fi
+[ -n "$DISCORD_BOT_TOKEN" ] && railway variables set DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN"
+railway variables set DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}"
 railway variables set WORKSPACE_PATH="/data/workspace"
 railway variables set PORT="5000"
 echo -e "${GREEN}✓ Variables set${NC}"
@@ -84,3 +107,6 @@ railway domain
 
 echo ""
 echo "🎉 Access your Clawdbot at the URL above!"
+echo ""
+echo "Discord worker start command:"
+echo "  python plugins/discord_bot.py"

@@ -11,6 +11,15 @@ primary_region = "iad"  # Change to your preferred region
   PYTHON_VERSION = "3.11"
   PORT = "8080"
   WORKSPACE_PATH = "/app/workspace"
+  AI_PROVIDER = "deepseek"
+  DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
+  DEEPSEEK_MODEL = "deepseek-v4-flash"
+  DEEPSEEK_REASONING_MODEL = "deepseek-v4-pro"
+  DISCORD_REQUIRE_MENTION = "true"
+
+[processes]
+  app = "python app.py"
+  worker = "python plugins/discord_bot.py"
 
 # Persistent volume for workspace files
 [[mounts]]

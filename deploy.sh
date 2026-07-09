@@ -17,17 +17,35 @@ echo "║        Clawdbot DeepSeek - Deployment Script               ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# Check if DEEPSEEK_API_KEY is set
-if [ -z "$DEEPSEEK_API_KEY" ]; then
-    echo -e "${RED}❌ Error: DEEPSEEK_API_KEY is not set!${NC}"
-    echo "Get your API key at: https://platform.deepseek.com"
+# Check if provider key is set
+AI_PROVIDER="${AI_PROVIDER:-deepseek}"
+if [ "$AI_PROVIDER" = "kimi" ]; then
+    PROVIDER_KEY="${KIMI_API_KEY:-$MOONSHOT_API_KEY}"
+    PROVIDER_KEY_NAME="KIMI_API_KEY or MOONSHOT_API_KEY"
+else
+    PROVIDER_KEY="$DEEPSEEK_API_KEY"
+    PROVIDER_KEY_NAME="DEEPSEEK_API_KEY"
+fi
+
+if [ -z "$PROVIDER_KEY" ]; then
+    echo -e "${RED}Error: $PROVIDER_KEY_NAME is not set!${NC}"
     echo ""
     echo "Set it with:"
-    echo "  export DEEPSEEK_API_KEY=your_key_here"
+    if [ "$AI_PROVIDER" = "kimi" ]; then
+        echo "  export KIMI_API_KEY=your_key_here"
+    else
+        echo "  export DEEPSEEK_API_KEY=your_key_here"
+    fi
     exit 1
 fi
 
-echo -e "${GREEN}✓ DEEPSEEK_API_KEY is set${NC}"
+echo -e "${GREEN}Provider key is set${NC}"
+
+if [ -n "$DISCORD_BOT_TOKEN" ]; then
+    echo -e "${GREEN}DISCORD_BOT_TOKEN is set${NC}"
+else
+    echo -e "${YELLOW}DISCORD_BOT_TOKEN is not set; web API can deploy, Discord worker cannot run yet.${NC}"
+fi
 
 # Function to deploy to Railway
 deploy_railway() {
@@ -45,7 +63,18 @@ deploy_railway() {
     railway init
     
     echo "Setting environment variables..."
-    railway variables set DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+    railway variables set AI_PROVIDER="$AI_PROVIDER"
+    if [ "$AI_PROVIDER" = "kimi" ]; then
+        [ -n "$KIMI_API_KEY" ] && railway variables set KIMI_API_KEY="$KIMI_API_KEY"
+        [ -n "$MOONSHOT_API_KEY" ] && railway variables set MOONSHOT_API_KEY="$MOONSHOT_API_KEY"
+    else
+        railway variables set DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+        railway variables set DEEPSEEK_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}"
+        railway variables set DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-flash}"
+        railway variables set DEEPSEEK_REASONING_MODEL="${DEEPSEEK_REASONING_MODEL:-deepseek-v4-pro}"
+    fi
+    [ -n "$DISCORD_BOT_TOKEN" ] && railway variables set DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN"
+    railway variables set DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}"
     railway variables set WORKSPACE_PATH="/data/workspace"
     
     echo "Deploying..."
@@ -66,7 +95,7 @@ deploy_render() {
     echo "2. Go to https://dashboard.render.com/blueprints"
     echo "3. Click 'New Blueprint Instance'"
     echo "4. Connect your GitHub repo"
-    echo "5. Set DEEPSEEK_API_KEY in environment variables"
+    echo "5. Set provider key and DISCORD_BOT_TOKEN in environment variables"
     echo ""
     echo -e "${YELLOW}Or use Render CLI (if installed):${NC}"
     
@@ -92,7 +121,18 @@ deploy_fly() {
     fly volumes create workspace_data --region iad --size 1 -y || true
     
     echo "Setting secrets..."
-    fly secrets set DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+    fly secrets set AI_PROVIDER="$AI_PROVIDER"
+    if [ "$AI_PROVIDER" = "kimi" ]; then
+        [ -n "$KIMI_API_KEY" ] && fly secrets set KIMI_API_KEY="$KIMI_API_KEY"
+        [ -n "$MOONSHOT_API_KEY" ] && fly secrets set MOONSHOT_API_KEY="$MOONSHOT_API_KEY"
+    else
+        fly secrets set DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+        fly secrets set DEEPSEEK_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}"
+        fly secrets set DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-flash}"
+        fly secrets set DEEPSEEK_REASONING_MODEL="${DEEPSEEK_REASONING_MODEL:-deepseek-v4-pro}"
+    fi
+    [ -n "$DISCORD_BOT_TOKEN" ] && fly secrets set DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN"
+    fly secrets set DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}"
     fly secrets set WORKSPACE_PATH="/app/workspace"
     
     echo "Deploying..."
@@ -119,7 +159,12 @@ deploy_docker() {
     docker run -d \
         --name clawdbot \
         -p 8080:8080 \
+        -e AI_PROVIDER="$AI_PROVIDER" \
         -e DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY" \
+        -e KIMI_API_KEY="$KIMI_API_KEY" \
+        -e MOONSHOT_API_KEY="$MOONSHOT_API_KEY" \
+        -e DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
+        -e DISCORD_REQUIRE_MENTION="${DISCORD_REQUIRE_MENTION:-true}" \
         -e PORT=8080 \
         -v "$(pwd)/workspace:/data/workspace" \
         --restart unless-stopped \
@@ -138,13 +183,13 @@ run_local() {
     echo -e "\n${BLUE}🏠 Running locally...${NC}"
     
     # Check dependencies
-    if ! python -c "import flask" 2>/dev/null; then
+    if ! python3.11 -c "import flask" 2>/dev/null; then
         echo -e "${YELLOW}Installing dependencies...${NC}"
-        pip install -r requirements-deploy.txt
+        python3.11 -m pip install -r requirements-deploy.txt
     fi
     
     echo "Starting server on http://localhost:5000"
-    python app.py
+    python3.11 app.py
 }
 
 # Show menu
@@ -153,7 +198,7 @@ echo "Choose deployment target:"
 echo ""
 echo -e "${BLUE}Cloud Platforms:${NC}"
 echo "  1) Railway (easiest, $5/mo credit)"
-echo "  2) Render (free tier available)"
+echo "  2) Render (web + Discord worker blueprint)"
 echo "  3) Fly.io (performance, low cost)"
 echo ""
 echo -e "${BLUE}Self-Hosted:${NC}"
@@ -214,8 +259,9 @@ case $choice in
         echo "  - Requires Docker knowledge"
         echo ""
         echo "For all platforms, you need:"
-        echo "  1. DEEPSEEK_API_KEY from https://platform.deepseek.com"
-        echo "  2. Git repository pushed to GitHub"
+        echo "  1. Fresh provider API key"
+        echo "  2. DISCORD_BOT_TOKEN for the community worker"
+        echo "  3. Git repository pushed to GitHub"
         echo ""
         ;;
     q|Q)

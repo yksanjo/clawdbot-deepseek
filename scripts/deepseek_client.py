@@ -28,22 +28,73 @@ class ChatResponse:
     finish_reason: str
 
 
-class DeepSeekClient:
-    """Client for DeepSeek API with OpenAI-compatible interface."""
+@dataclass(frozen=True)
+class ProviderConfig:
+    name: str
+    api_key_envs: tuple[str, ...]
+    base_url_env: str
+    model_env: str
+    default_base_url: str
+    default_model: str
+
+
+PROVIDERS = {
+    "deepseek": ProviderConfig(
+        name="deepseek",
+        api_key_envs=("DEEPSEEK_API_KEY",),
+        base_url_env="DEEPSEEK_BASE_URL",
+        model_env="DEEPSEEK_MODEL",
+        default_base_url="https://api.deepseek.com/v1",
+        default_model="deepseek-v4-flash",
+    ),
+    "kimi": ProviderConfig(
+        name="kimi",
+        api_key_envs=("KIMI_API_KEY", "MOONSHOT_API_KEY"),
+        base_url_env="KIMI_BASE_URL",
+        model_env="KIMI_MODEL",
+        default_base_url="https://api.moonshot.ai/v1",
+        default_model="kimi-k2.7-code",
+    ),
+}
+
+
+def _first_env(keys: tuple[str, ...]) -> Optional[str]:
+    for key in keys:
+        value = os.getenv(key)
+        if value:
+            return value
+    return None
+
+
+class OpenAICompatibleClient:
+    """Client for OpenAI-compatible chat completion APIs."""
 
     def __init__(
         self,
+        provider: str = "deepseek",
         api_key: Optional[str] = None,
-        base_url: str = "https://api.deepseek.com/v1",
-        model: str = "deepseek-chat",
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
     ):
-        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
+        if provider not in PROVIDERS:
+            supported = ", ".join(sorted(PROVIDERS))
+            raise ValueError(f"Unsupported provider '{provider}'. Supported: {supported}")
+
+        self.provider = provider
+        config = PROVIDERS[provider]
+        self.api_key = api_key or _first_env(config.api_key_envs)
         if not self.api_key:
+            env_names = " or ".join(config.api_key_envs)
             raise ValueError(
-                "DeepSeek API key required. Set DEEPSEEK_API_KEY env var or pass api_key."
+                f"{provider} API key required. Set {env_names} env var or pass api_key."
             )
-        self.base_url = base_url.rstrip("/")
-        self.default_model = model
+
+        self.base_url = (
+            base_url
+            or os.getenv(config.base_url_env)
+            or config.default_base_url
+        ).rstrip("/")
+        self.default_model = model or os.getenv(config.model_env) or config.default_model
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -77,6 +128,10 @@ class DeepSeekClient:
         """
         model = model or self.default_model
 
+        if self.provider == "kimi" and model.startswith("kimi-k2.7-code"):
+            # Kimi K2.7 Code only accepts fixed sampling parameters.
+            temperature = 1.0
+
         payload = {
             "model": model,
             "messages": messages,
@@ -85,6 +140,9 @@ class DeepSeekClient:
             "stream": stream,
             **kwargs,
         }
+
+        if self.provider == "deepseek" and "thinking" not in payload:
+            payload["thinking"] = {"type": "disabled"}
 
         response = self.session.post(
             f"{self.base_url}/chat/completions",
@@ -145,7 +203,7 @@ class DeepSeekClient:
 
     def reason(self, prompt: str, **kwargs) -> str:
         """
-        Use DeepSeek Reasoner (R1) for complex reasoning tasks.
+        Use provider reasoning mode/model for complex reasoning tasks.
 
         Args:
             prompt: The problem or question requiring reasoning
@@ -154,7 +212,51 @@ class DeepSeekClient:
         Returns:
             Reasoned response
         """
-        return self.simple_chat(prompt, model="deepseek-reasoner", **kwargs)
+        if self.provider == "deepseek":
+            kwargs.setdefault(
+                "model",
+                os.getenv("DEEPSEEK_REASONING_MODEL", "deepseek-v4-pro"),
+            )
+            kwargs.setdefault("thinking", {"type": "enabled"})
+            kwargs.setdefault("reasoning_effort", "high")
+        elif self.provider == "kimi":
+            kwargs.setdefault("model", os.getenv("KIMI_REASONING_MODEL", self.default_model))
+
+        return self.simple_chat(prompt, **kwargs)
+
+
+class DeepSeekClient(OpenAICompatibleClient):
+    """Client for DeepSeek API with OpenAI-compatible interface."""
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+    ):
+        super().__init__(
+            provider="deepseek",
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+        )
+
+
+class KimiClient(OpenAICompatibleClient):
+    """Client for Kimi/Moonshot API with OpenAI-compatible interface."""
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+    ):
+        super().__init__(
+            provider="kimi",
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+        )
 
 
 class ClawdbotAgent:
@@ -167,9 +269,15 @@ class ClawdbotAgent:
         self,
         workspace_path: str = "./workspace",
         api_key: Optional[str] = None,
+        provider: Optional[str] = None,
+        model: Optional[str] = None,
     ):
         self.workspace = Path(workspace_path)
-        self.client = DeepSeekClient(api_key=api_key)
+        self.client = OpenAICompatibleClient(
+            provider=provider or os.getenv("AI_PROVIDER", "deepseek"),
+            api_key=api_key,
+            model=model,
+        )
         self.memory_dir = self.workspace / "memory"
         self.memory_dir.mkdir(exist_ok=True)
 
@@ -266,7 +374,10 @@ def main():
                 except KeyboardInterrupt:
                     break
     else:
-        client = DeepSeekClient(model=args.model)
+        client = OpenAICompatibleClient(
+            provider=os.getenv("AI_PROVIDER", "deepseek"),
+            model=args.model,
+        )
         if args.message:
             if args.stream:
                 for chunk in client.chat(

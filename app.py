@@ -18,7 +18,9 @@ from pathlib import Path
 from functools import wraps
 
 from flask import Flask, request, jsonify, render_template_string, Response
-from scripts.deepseek_client import DeepSeekClient, ClawdbotAgent
+from dotenv import load_dotenv
+from scripts.deepseek_client import ClawdbotAgent
+from scripts.app_requests import AppRequestStore
 
 # Configure logging
 logging.basicConfig(
@@ -27,23 +29,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+
 # Initialize Flask app
 app = Flask(__name__)
 
 # Configuration
 WORKSPACE_PATH = os.getenv("WORKSPACE_PATH", "./workspace")
-API_KEY = os.getenv("DEEPSEEK_API_KEY")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "deepseek")
 PORT = int(os.getenv("PORT", 5000))
 
 # Initialize agent
 agent = None
+app_request_store = AppRequestStore(WORKSPACE_PATH)
 
 
 def get_agent():
     """Lazy initialization of agent."""
     global agent
     if agent is None:
-        agent = ClawdbotAgent(workspace_path=WORKSPACE_PATH, api_key=API_KEY)
+        agent = ClawdbotAgent(workspace_path=WORKSPACE_PATH, provider=AI_PROVIDER)
         logger.info(f"Agent initialized with workspace: {WORKSPACE_PATH}")
     return agent
 
@@ -357,6 +362,8 @@ def health():
         return jsonify({
             "status": "healthy",
             "workspace": WORKSPACE_PATH,
+            "provider": AI_PROVIDER,
+            "model": get_agent().client.default_model,
             "agent_ready": True,
             "timestamp": datetime.now().isoformat()
         })
@@ -377,11 +384,10 @@ def chat():
         
         message = data["message"]
         stream = data.get("stream", False)
-        model = data.get("model", "deepseek-chat")
-        
         logger.info(f"Chat request: {message[:50]}...")
         
         agent = get_agent()
+        model = data.get("model", agent.client.default_model)
         
         if stream:
             def generate():
@@ -425,10 +431,14 @@ def reason():
         
         agent = get_agent()
         response = agent.client.reason(message)
+        if AI_PROVIDER == "deepseek":
+            model = os.getenv("DEEPSEEK_REASONING_MODEL", "deepseek-v4-pro")
+        else:
+            model = os.getenv("KIMI_REASONING_MODEL", agent.client.default_model)
         
         return jsonify({
             "response": response,
-            "model": "deepseek-reasoner",
+            "model": model,
             "timestamp": datetime.now().isoformat()
         })
     
@@ -494,6 +504,31 @@ def get_personality():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/app-requests", methods=["GET", "POST"])
+def app_requests():
+    """Create or list community app requests."""
+    try:
+        if request.method == "GET":
+            limit = int(request.args.get("limit", 5))
+            recent = app_request_store.list_recent(limit=limit)
+            return jsonify({"requests": [r.__dict__ for r in recent]})
+
+        data = request.get_json()
+        if not data or "description" not in data:
+            return jsonify({"error": "Missing 'description' field"}), 400
+
+        app_request = app_request_store.create(
+            description=data["description"],
+            requester=data.get("requester", "api"),
+            source=data.get("source", "api"),
+            metadata=data.get("metadata", {}),
+        )
+        return jsonify(app_request.__dict__), 201
+    except Exception as e:
+        logger.error(f"App request error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 # =============================================================================
 # ERROR HANDLERS
 # =============================================================================
@@ -514,10 +549,16 @@ def server_error(e):
 
 if __name__ == "__main__":
     # Validate environment
-    if not API_KEY:
-        logger.error("DEEPSEEK_API_KEY not set!")
-        print("❌ Error: DEEPSEEK_API_KEY environment variable is required")
-        print("Set it with: export DEEPSEEK_API_KEY=your_key_here")
+    if AI_PROVIDER == "kimi":
+        key_ok = bool(os.getenv("KIMI_API_KEY") or os.getenv("MOONSHOT_API_KEY"))
+        key_hint = "KIMI_API_KEY or MOONSHOT_API_KEY"
+    else:
+        key_ok = bool(os.getenv("DEEPSEEK_API_KEY"))
+        key_hint = "DEEPSEEK_API_KEY"
+
+    if not key_ok:
+        logger.error("%s not set!", key_hint)
+        print(f"Error: {key_hint} environment variable is required")
         exit(1)
     
     # Ensure workspace exists
