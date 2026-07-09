@@ -243,6 +243,8 @@ Markdown specs. Use:
 ```text
 /app build a landing page for our token with wallet connect and a waitlist
 /requests
+/agent what should we build next?
+/ag summarize this
 /b what should we build next?
 agent: what should we ship first?
 -agent what should we ship first?

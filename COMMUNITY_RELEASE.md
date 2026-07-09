@@ -74,6 +74,8 @@ In Telegram:
 /ping
 /a what can you do?
 /b what should we ship next?
+/agent what do you think?
+/ag summarize this
 /app build a waitlist page for our community app
 /requests
 agent: summarize the last few comments
@@ -121,7 +123,7 @@ fly scale count app=1 worker=1
 
 ## 5. Community Safety Defaults
 
-- The Telegram bot supports `/app`, `/build`, `/a`, `/ask`, `/requests`, `/ping`, and direct callouts like `-agent` or `agent:`.
+- The Telegram bot supports `/app`, `/build`, `/agent`, `/ag`, `/talk`, `/a`, `/ask`, `/requests`, `/ping`, and direct callouts like `-agent` or `agent:` when Telegram delivers normal group messages.
 - In groups, use BotFather `/setprivacy` -> select bot -> `Disable` if you want it to read all normal comments.
 - `TELEGRAM_PARTICIPATION_MODE=smart` listens to comments but replies only when addressed or when a relevant group question appears.
 - App requests are captured as specs in `workspace/app_requests/`.

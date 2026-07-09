@@ -218,11 +218,11 @@ class TelegramBot:
             )
             return
 
-        if command in {"ask", "a", "b"}:
+        if command in {"ask", "a", "b", "agent", "ag", "talk"}:
             if command_text:
                 self._chat(chat_id, command_text[:MAX_INPUT_CHARS], requester, message)
             else:
-                self._send(chat_id, "Usage: /a what should we build next?")
+                self._send(chat_id, "Usage: /agent what should we build next?")
             return
 
         direct_text = self._directed_text(text, message)
@@ -455,6 +455,9 @@ Latest message from {requester}:
         commands = [
             {"command": "a", "description": "Ask the agent"},
             {"command": "b", "description": "Ask Breakout"},
+            {"command": "agent", "description": "Ask the agent"},
+            {"command": "ag", "description": "Ask the agent"},
+            {"command": "talk", "description": "Talk to the agent"},
             {"command": "ask", "description": "Ask the agent"},
             {"command": "app", "description": "Capture an app request"},
             {"command": "build", "description": "Capture a build request"},
