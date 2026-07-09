@@ -245,6 +245,7 @@ Markdown specs. Use:
 /requests
 /b what should we build next?
 agent: what should we ship first?
+-agent what should we ship first?
 ```
 
 For coding-heavy spec generation, add a Kimi key and route app requests to Kimi:

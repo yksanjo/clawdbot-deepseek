@@ -43,7 +43,7 @@ TRIGGER_NAMES = tuple(
     item.strip().lower()
     for item in os.getenv(
         "TELEGRAM_TRIGGER_NAMES",
-        "agent,breakout,breakout agent,clawdbot",
+        "-agent,agent,breakout,breakout agent,clawdbot",
     ).split(",")
     if item.strip()
 )
@@ -270,12 +270,13 @@ class TelegramBot:
             if mention in text.lower():
                 return re.sub(re.escape(mention), "", text, flags=re.IGNORECASE).strip()
 
-        lowered = text.lower().strip()
+        stripped = text.strip()
+        lowered = stripped.lower()
         for name in TRIGGER_NAMES:
             pattern = rf"^(hey\s+)?{re.escape(name)}\b[:,\-\s]*(.*)$"
             match = re.match(pattern, lowered, flags=re.IGNORECASE)
             if match:
-                return text[match.start(2):].strip() or text
+                return stripped[match.start(2):].strip()
 
         return None
 

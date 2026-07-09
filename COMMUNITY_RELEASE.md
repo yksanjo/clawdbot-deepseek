@@ -29,7 +29,7 @@ DEEPSEEK_REASONING_MODEL=deepseek-v4-pro
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_REQUIRE_COMMAND=false
 TELEGRAM_PARTICIPATION_MODE=smart
-TELEGRAM_TRIGGER_NAMES=agent,breakout,breakout agent,clawdbot
+TELEGRAM_TRIGGER_NAMES=-agent,agent,breakout,breakout agent,clawdbot
 ```
 
 Optional safety limits:
@@ -74,6 +74,7 @@ In Telegram:
 /app build a waitlist page for our community app
 /requests
 agent: summarize the last few comments
+-agent summarize the last few comments
 ```
 
 ## 4. Deploy
@@ -117,7 +118,7 @@ fly scale count app=1 worker=1
 
 ## 5. Community Safety Defaults
 
-- The Telegram bot supports `/app`, `/build`, `/a`, `/ask`, `/requests`, `/ping`, and direct callouts like `agent:`.
+- The Telegram bot supports `/app`, `/build`, `/a`, `/ask`, `/requests`, `/ping`, and direct callouts like `-agent` or `agent:`.
 - In groups, use BotFather `/setprivacy` -> select bot -> `Disable` if you want it to read all normal comments.
 - `TELEGRAM_PARTICIPATION_MODE=smart` listens to comments but replies only when addressed or when a relevant group question appears.
 - App requests are captured as specs in `workspace/app_requests/`.
