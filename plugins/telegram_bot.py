@@ -56,6 +56,12 @@ SMART_KEYWORDS = tuple(
     if item.strip()
 )
 CONTEXT_MESSAGES = int(os.getenv("TELEGRAM_CONTEXT_MESSAGES", "12"))
+DEBUG_MESSAGES = os.getenv("TELEGRAM_DEBUG_MESSAGES", "false").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+EMPTY_DIRECT_PROMPT = "Briefly introduce yourself and explain the shortest ways this Telegram group can call you."
 
 
 def _ids_from_env(name: str) -> set[int]:
@@ -148,6 +154,7 @@ class TelegramBot:
         requester = self._requester_name(user)
         chat_type = chat.get("type", "private")
         is_group = chat_type in {"group", "supergroup"}
+        self._debug_message(chat_id, requester, text)
         self._remember_context(chat_id, requester, text)
 
         command, command_text, addressed_to_this_bot = self._parse_command(text)
@@ -189,8 +196,9 @@ class TelegramBot:
             return
 
         direct_text = self._directed_text(text, message)
-        if direct_text:
-            self._chat(chat_id, direct_text[:MAX_INPUT_CHARS], requester, message)
+        if direct_text is not None:
+            prompt = direct_text.strip() or EMPTY_DIRECT_PROMPT
+            self._chat(chat_id, prompt[:MAX_INPUT_CHARS], requester, message)
             return
 
         if REQUIRE_COMMAND:
@@ -236,6 +244,10 @@ class TelegramBot:
         if self.bot_id and reply_user.get("id") == self.bot_id:
             return text
 
+        entity_text = self._directed_text_from_entities(text, message)
+        if entity_text is not None:
+            return entity_text
+
         if self.username:
             mention = f"@{self.username}".lower()
             if mention in text.lower():
@@ -247,6 +259,31 @@ class TelegramBot:
             match = re.match(pattern, lowered, flags=re.IGNORECASE)
             if match:
                 return text[match.start(2):].strip() or text
+
+        return None
+
+    def _directed_text_from_entities(
+        self,
+        text: str,
+        message: dict[str, Any],
+    ) -> Optional[str]:
+        entities = message.get("entities") or []
+        for entity in entities:
+            entity_type = entity.get("type")
+            offset = entity.get("offset")
+            length = entity.get("length")
+            if not isinstance(offset, int) or not isinstance(length, int):
+                continue
+
+            if entity_type == "mention" and self.username:
+                value = text[offset:offset + length]
+                if value.lower() == f"@{self.username.lower()}":
+                    return (text[:offset] + text[offset + length:]).strip()
+
+            if entity_type == "text_mention" and self.bot_id:
+                mentioned_user = entity.get("user") or {}
+                if mentioned_user.get("id") == self.bot_id:
+                    return (text[:offset] + text[offset + length:]).strip()
 
         return None
 
@@ -268,6 +305,15 @@ class TelegramBot:
 
     def _remember_context(self, chat_id: int, requester: str, text: str) -> None:
         self.contexts[chat_id].append(f"{requester}: {text}")
+
+    def _debug_message(self, chat_id: int, requester: str, text: str) -> None:
+        if not DEBUG_MESSAGES:
+            return
+        preview = re.sub(r"\s+", " ", text).strip()[:160]
+        print(
+            f"telegram message chat={chat_id} requester={requester} text={preview}",
+            flush=True,
+        )
 
     def _context_prompt(self, chat_id: int, requester: str, text: str) -> str:
         recent = list(self.contexts[chat_id])[-CONTEXT_MESSAGES:]
