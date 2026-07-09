@@ -11,7 +11,8 @@ Use this runbook to put Clawdbot in a Telegram community.
 5. Optional: add the bot to your group.
 
 For groups, BotFather privacy mode can stay enabled if you only want command
-messages such as `/app`, `/ask`, and `/requests` to reach the bot.
+messages such as `/app`, `/a`, and `/requests` to reach the bot. Disable privacy
+mode if you want the agent to read normal group comments and participate when useful.
 
 ## 2. Configure Secrets
 
@@ -27,6 +28,8 @@ DEEPSEEK_REASONING_MODEL=deepseek-v4-pro
 
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_REQUIRE_COMMAND=false
+TELEGRAM_PARTICIPATION_MODE=smart
+TELEGRAM_TRIGGER_NAMES=agent,breakout,breakout agent,clawdbot
 ```
 
 Optional safety limits:
@@ -34,6 +37,7 @@ Optional safety limits:
 ```bash
 TELEGRAM_ALLOWED_CHAT_IDS=123456789,-1001234567890
 TELEGRAM_MAX_INPUT_CHARS=3500
+TELEGRAM_SMART_REPLY_COOLDOWN_SECONDS=180
 ```
 
 Optional Kimi routing for app specs:
@@ -64,9 +68,11 @@ In Telegram:
 
 ```text
 /ping
-/ask what can you do?
+/a what can you do?
+/b what should we ship next?
 /app build a waitlist page for our community app
 /requests
+agent: summarize the last few comments
 ```
 
 ## 4. Deploy
@@ -96,6 +102,7 @@ DEEPSEEK_MODEL
 DEEPSEEK_REASONING_MODEL
 TELEGRAM_BOT_TOKEN
 TELEGRAM_REQUIRE_COMMAND
+TELEGRAM_PARTICIPATION_MODE
 WORKSPACE_PATH
 ```
 
@@ -109,7 +116,9 @@ fly scale count app=1 worker=1
 
 ## 5. Community Safety Defaults
 
-- The Telegram bot supports `/app`, `/ask`, `/requests`, `/ping`, and normal chat messages.
+- The Telegram bot supports `/app`, `/build`, `/a`, `/ask`, `/requests`, `/ping`, and direct callouts like `agent:`.
+- In groups, use BotFather `/setprivacy` -> select bot -> `Disable` if you want it to read all normal comments.
+- `TELEGRAM_PARTICIPATION_MODE=smart` listens to comments but replies only when addressed or when a relevant group question appears.
 - App requests are captured as specs in `workspace/app_requests/`.
 - Automatic app builds are disabled by default.
 - Do not enable `APP_REQUEST_AUTOBUILD=true` until the build command is approval-gated.

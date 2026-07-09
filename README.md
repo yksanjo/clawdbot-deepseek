@@ -219,8 +219,8 @@ For community deployment, see [COMMUNITY_RELEASE.md](COMMUNITY_RELEASE.md).
 
 ### 24/7 Telegram Community Bot
 
-Clawdbot can run as a Telegram worker that replies to messages and captures app
-requests with `/app`.
+Clawdbot can run as a Telegram worker that replies to commands, direct callouts,
+and relevant group questions. It captures app requests with `/app`.
 
 ```bash
 python3.11 -m venv .venv
@@ -232,6 +232,7 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 COMMUNITY_TRANSPORT=telegram
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 TELEGRAM_REQUIRE_COMMAND=false
+TELEGRAM_PARTICIPATION_MODE=smart
 
 .venv/bin/python plugins/telegram_bot.py
 ```
@@ -242,6 +243,8 @@ Markdown specs. Use:
 ```text
 /app build a landing page for our token with wallet connect and a waitlist
 /requests
+/b what should we build next?
+agent: what should we ship first?
 ```
 
 For coding-heavy spec generation, add a Kimi key and route app requests to Kimi:
