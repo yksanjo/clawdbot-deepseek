@@ -104,7 +104,12 @@ class TelegramBot:
                     {
                         "timeout": POLL_TIMEOUT,
                         "offset": offset,
-                        "allowed_updates": ["message"],
+                        "allowed_updates": [
+                            "message",
+                            "edited_message",
+                            "channel_post",
+                            "edited_channel_post",
+                        ],
                     },
                     timeout=POLL_TIMEOUT + 10,
                 )
@@ -135,7 +140,19 @@ class TelegramBot:
         return data.get("result")
 
     def _handle_update(self, update: dict[str, Any]) -> None:
-        message = update.get("message") or {}
+        message = (
+            update.get("message")
+            or update.get("edited_message")
+            or update.get("channel_post")
+            or update.get("edited_channel_post")
+            or {}
+        )
+        if DEBUG_MESSAGES:
+            update_types = ",".join(key for key in update.keys() if key != "update_id")
+            print(
+                f"telegram update id={update.get('update_id')} types={update_types}",
+                flush=True,
+            )
         chat = message.get("chat") or {}
         chat_id = chat.get("id")
         if chat_id is None:
